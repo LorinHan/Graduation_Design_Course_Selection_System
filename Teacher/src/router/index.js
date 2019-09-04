@@ -6,6 +6,7 @@ const Teacher = r => require.ensure([], () => r(require('@/components/Teacher.vu
 const Task = r => require.ensure([], () => r(require('@/components/Task.vue')), 'chunkname2');
 const History = r => require.ensure([], () => r(require('@/components/History.vue')), 'chunkname3');
 const Me = r => require.ensure([], () => r(require('@/components/Me.vue')), 'chunkname4');
+const History_task = r => require.ensure([], () => r(require('@/components/History_task.vue')), 'chunkname5');
 
 
 Vue.use(Router)
@@ -36,6 +37,11 @@ export default new Router({
       path: '/me',
       name: 'Me',
       component: Me
+    },
+    {
+      path: '/history_task',
+      name: 'History_task',
+      component: History_task
     }
   ]
 })

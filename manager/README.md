@@ -1,6 +1,6 @@
-# 师生选题配对系统系统--前端
+# manager
 
-> 根目录下为学生端，Teacher目录下为教师端，manager目录下为管理员后台端
+> A Vue.js project
 
 ## Build Setup
 

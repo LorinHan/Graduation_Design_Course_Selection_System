@@ -1,6 +1,6 @@
 <template>
     <div id="task">
-        <h3>当前任务</h3>
+        <h3>当前选题</h3>
 
         <div class="form">
             <div class="header">
@@ -22,14 +22,15 @@
 export default {
     data() {
         return {
-            data_list: [{"task_id": 1, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}, {"task_id": 2, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}, {"task_id": 3, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}, {"task_id": 4, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}]
+            data_list: [{"task_id": 1, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}, {"task_id": 2, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}, {"task_id": 3, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}]
         }
     }
 }
 </script>
-<style lang="less">
+<style lang="less" scoped>
     #task{
-        padding: 0 10px;
+        margin-top: -5%;
+        padding: 5% 10px;
         h3{text-align: center;}
         .form{
             margin-top: 5%;
@@ -45,8 +46,8 @@ export default {
             span{box-sizing: border-box; display: inline-block;height: 100%;line-height: 35px;width: 30%;padding-left: 10px;}
             .task_name {width: 68%;border-right: 1px solid #f2f2f2;}
             .body{
-                .item{margin-top: 10px; border-bottom: 1px solid #f2f2f2;}
-                span{height: 30px;line-height: 30px;padding-left: 10px; font-size: 12px;}
+                .item{border-bottom: 1px solid #f2f2f2;}
+                span{height: 40px;line-height: 40px;padding-left: 10px; font-size: 12px;}
             }
         }
     }

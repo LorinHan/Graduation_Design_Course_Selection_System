@@ -7,12 +7,12 @@
         <p><i class="iconfont icon-school"></i>商管院</p>
         <p><i class="iconfont icon-user_name"></i>xxx</p>
         <p @click="logout"><i class="iconfont icon-logout red"></i>退出</p>
-      </div>
-    <router-view/>
+      </div> 
+      <router-view></router-view>
 
     <div class="footer" v-cloak v-if="footer">
-      <div class="box"><router-link to="history" active-class="active_box"><i class="iconfont icon-history"></i> <p>历史任务</p></router-link></div>
-      <div class="box"><router-link to="task" active-class="active_box"><i class="iconfont icon-renwu"></i> <p>当前任务</p></router-link></div>
+      <div class="box"><router-link to="history" active-class="active_box"><i class="iconfont icon-history"></i> <p>历史选题</p></router-link></div>
+      <div class="box"><router-link to="task" active-class="active_box"><i class="iconfont icon-renwu"></i> <p>当前选题</p></router-link></div>
       <div class="box"><router-link to="me" active-class="active_box"><i class="iconfont icon-wode"></i> <p>我的</p></router-link></div>
     </div>
   </div>
