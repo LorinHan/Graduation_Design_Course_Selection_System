@@ -3,6 +3,8 @@
 import Vue from 'vue';
 import App from './App';
 import router from './router';
+import http from './router/http.js';
+import Qs from 'qs';
 
 import Header from "mint-ui/lib/header";
 import Button from "mint-ui/lib/button";
@@ -24,6 +26,8 @@ Vue.component(Badge.name, Badge);
 Vue.prototype.$toast = Toast;
 Vue.prototype.$messageBox = MessageBox;
 Vue.config.productionTip = false
+Vue.prototype.$qs = Qs;
+Vue.prototype.$ajax = http
 
 /* eslint-disable no-new */
 new Vue({

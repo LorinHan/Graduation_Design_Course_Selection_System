@@ -7,6 +7,7 @@ const Majors = r => require.ensure([], () => r(require('@/components/pages/major
 const Teachers = r => require.ensure([], () => r(require('@/components/pages/teachers/')), 'chunkname4')
 const Students = r => require.ensure([], () => r(require('@/components/pages/students/')), 'chunkname5')
 const Infos = r => require.ensure([], () => r(require('@/components/pages/tasks/infos.vue')), 'chunkname6')
+const Users = r => require.ensure([], () => r(require('@/components/pages/users/')), 'chunkname7')
 
 Vue.use(Router)
 
@@ -24,9 +25,10 @@ export default new Router({
       children: [
         {path: "tasks", component: Tasks, meta: { keepAlive: true }},
         {path: "majors", component: Majors, meta: { keepAlive: true }},
-        {path: "teachers", component: Teachers, meta: { keepAlive: true }},
-        {path: "students", component: Students, meta: { keepAlive: true }},
-        {path: "infos", component: Infos, meta: { keepAlive: false }}
+        {path: "teachers", component: Teachers, meta: { keepAlive: false }},
+        {path: "students", component: Students, meta: { keepAlive: false }},
+        {path: "infos", component: Infos, meta: { keepAlive: false }},
+        {path: "users", component: Users, meta: { keepAlive: false }}
       ]
     }
   ]

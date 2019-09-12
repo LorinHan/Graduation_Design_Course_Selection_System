@@ -10,7 +10,22 @@ module.exports = {
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    proxyTable: {
+      "/api":{
+        // http://zehuo.huoran.net
+        target:"http://192.168.43.21:8000",//访问的服务器地址
+        changeOrigin:true,//true为开启代理
+        //secure: true, // 如果是https接口，需要配置这个参数
+        pathRewrite:{
+            '^/api': '/api'//路径的替换规则
+           /*
+            *这里的配置是正则表达式，以/api开头的路径将会被‘/'替换掉
+            *假如后台文档的接口是 "http://www.zhangpeiyue.com/user/add"
+            *前端调取API接口应写：axios.get('/api/user/add')
+            */
+        }
+      }
+    },
 
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST
@@ -42,7 +57,7 @@ module.exports = {
 
     // Paths
     assetsRoot: path.resolve(__dirname, '../dist'),
-    assetsSubDirectory: 'static',
+    assetsSubDirectory: 'static/teacher',
     assetsPublicPath: '/',
 
     /**

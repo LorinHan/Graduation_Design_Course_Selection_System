@@ -11,9 +11,11 @@
       <router-view></router-view>
 
     <div class="footer" v-cloak v-if="footer">
-      <div class="box"><router-link to="history" active-class="active_box"><i class="iconfont icon-history"></i> <p>历史选题</p></router-link></div>
+      <!--  to="history"  active-class="active_box" -->
+      <div class="box"><router-link to=""><i class="iconfont icon-history"></i> <p>历史选题</p></router-link></div>
       <div class="box"><router-link to="task" active-class="active_box"><i class="iconfont icon-renwu"></i> <p>当前选题</p></router-link></div>
-      <div class="box"><router-link to="me" active-class="active_box"><i class="iconfont icon-wode"></i> <p>我的</p></router-link></div>
+      <!-- to="me"  active-class="active_box" -->
+      <div class="box"><router-link to=""><i class="iconfont icon-wode"></i> <p>我的</p></router-link></div>
     </div>
   </div>
 </template>
@@ -92,4 +94,13 @@ span{font-size: 13px;}
 .footer > div.active_box {font-size: 13px;}
 .active_box i{color: #26a2ff; font-weight: 600;font-size: 20px;}
 .active_box p {color: #26a2ff;}
+.routerBtn{
+  position: fixed;
+  width: 110px;
+  bottom: 100px;
+  right: 0px;
+  padding-right: 20px;
+}
+.routerBtn > a{display: block;width: 100%;}
+.routerBtn > a > button{width:100%;}
 </style>

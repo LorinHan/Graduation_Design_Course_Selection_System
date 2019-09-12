@@ -43,6 +43,8 @@ export default {
     margin: 0;
     padding: 0;
   }
+  /* html, body{min-height:100%;}
+  body{background-image: url("/static/bg.jpg");background-size: 100% 100%;background-repeat: no-repeat;} */
   span{font-size: 14px;}
   .mint-header{margin-bottom: 5%; background-color: #fff;color: #333;border-bottom: 1px solid #f2f2f2;}
 .v-modal{opacity: .7;}
@@ -54,9 +56,14 @@ export default {
 .openBox > p > i{font-size: 16px;line-height: 30px; margin-left: 10%; margin-right: 5%;}
 .show{display: block;}
 .red{color: red;}
+.mint-checklist-title{color: #333;margin-left: 20px;border-bottom: 1px solid #fff;padding-bottom: 5px;padding-left: 10px;font-weight: 600;}
+.mint-header, .mint-cell, .mint-cell-value, .mint-field-core{background-color: rgba(252, 90, 90, 0);}
 @keyframes show
 {
 from {opacity: 0; transform: translateY(-200px);}
 to {opacity: 1;transform: translateY(0);}
+}
+.mint-checkbox-input[disabled]+.mint-checkbox-core{
+  background-color: #26a2ff!important;
 }
 </style>

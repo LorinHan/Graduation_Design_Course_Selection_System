@@ -3,6 +3,8 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
+import http from './router/http.js';
+import Qs from 'qs';
 
 // import VueDND from 'awe-dnd';
 
@@ -26,6 +28,8 @@ Vue.component(Badge.name, Badge);
 // Vue.use(VueDND)
 
 Vue.prototype.$toast = Toast   
+Vue.prototype.$qs = Qs;
+Vue.prototype.$ajax = http
 
 Vue.config.productionTip = false
 

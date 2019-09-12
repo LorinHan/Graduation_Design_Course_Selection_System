@@ -14,18 +14,21 @@ export default {
       username: "Lorin",
       grade: "二年级",
       teachers: ['张巧玲', '何焰', '洪涛', '谢维盛', "郑培诚", "孟凡美", '张巧玲2', '何焰2', '洪涛2', '谢维盛2', "郑培诚2", "孟凡美2"],
-      max: 5,
+      max: parseInt(localStorage.getItem("intention_number")),
       choosed: []
     }
   },
   methods: {
     next() {
       this.choosed = this.$refs.checkBox.value;
-      if(this.choosed.length < 5) {
+      if(this.choosed.length < this.max) {
         return this.$toast({message: "请选满 " + this.max + " 位导师", position: "middle", duration: 2500, iconClass: "mint-toast-icon mintui mintui-field-warning"})
       }
       this.$router.push("/student/next");
     }
+  },
+  created() {
+    this.teachers = JSON.parse(localStorage.getItem("teachers_list"));
   }
 }
 </script>

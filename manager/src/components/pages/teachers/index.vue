@@ -4,7 +4,7 @@
             ref="popover_teacher"
             width="800"
             placement="start"
-            class="popo"
+            popper-class="popo"
             trigger="click">
             <h2>新增教师</h2>
             <p class="new_p"><span class="new_span">姓名：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.name" placeholder="姓名"></el-input></p>
@@ -18,17 +18,19 @@
                     </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item v-for="item in all_majors" :key="item" :command="item">{{item}}</el-dropdown-item>
+                    <el-dropdown-item v-for="item in all_majors" :key="item.id" :command="item">{{item.major}}</el-dropdown-item>
                 </el-dropdown-menu>
                 </el-dropdown>
             </p>
             <p class="new_p"><span class="new_span">职称：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.title" placeholder="职称"></el-input></p>
-            <p class="new_p"><span class="new_span">简介：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.description" placeholder="简介"></el-input></p>
+            <p class="new_p"><span class="new_span">研究方向：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.research" placeholder="研究方向"></el-input></p>
+            <p class="new_p"><span class="new_span">密码：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.password" type="password" placeholder="密码"></el-input></p>
             <el-button @click="send_new_data" type="success" style="display: block;margin: 10px auto;">确 定</el-button>
         </el-popover>
-      <el-button type="warning" size="small" class="newBtn" icon="el-icon-printer">批量导入</el-button>
+      <!-- <el-button type="warning" size="small" class="newBtn" icon="el-icon-printer">上传</el-button> -->
+      <input class="newBtn" type="file" id="teacher_file" @change="postTeacherFile">
       <el-button type="primary" size="small" class="newBtn" v-popover:popover_teacher icon="el-icon-circle-plus-outline">新增</el-button>
-      <MyTable :data="tableData" :handleEdit="handleEdit" :handleDetail="handleDetail" :majors="majors" :filterMajor="filterMajor" :type="'teachers'"></MyTable>
+      <MyTable :data="tableData" :handleEdit="handleEdit" :handleDetail="handleDetail" :majors="majors" :filterMajor="filterMajor" :type="'teachers'" :total_page="total_page" @getTeacherData="getTeacherData" :limit="limit"></MyTable>
   </div>
 </template>
 
@@ -38,30 +40,12 @@ export default {
     components: {"MyTable": MyTable},
     data() {
         return {
-            tableData: [{
-          major: '电子商务',
-          no: '1230564',
-          name: "朱国华",
-          title: "副教授"
-        }, {
-          major: '国际贸易',
-          no: '1230564',
-          name: "张巧玲",
-          title: "副教授"
-        }, {
-          major: '会计',
-          no: '1230564',
-          name: "谢维盛",
-          title: "副教授"
-        }, {
-          major: '审计',
-          no: '1230564',
-          name: "何焰",
-          title: "副教授"
-        }],
-        majors: [],
-        all_majors: ["电子商务", "国际贸易", "会计", "审计"],
-        new_data: {name: "", teacher_id: "", major: "请选择专业", title: "", description: ""}
+            tableData: [],
+            majors: [],
+            all_majors: [],
+            new_data: {name: "", teacher_id: "", major: "请选择专业", title: "", research: "", major_id: "", password: ""},
+            limit: 20,
+            total_page: 0
         }
     },
     methods: {
@@ -75,19 +59,82 @@ export default {
             return row.major === value;
         },
         send_new_data() {
-            console.log(this.new_data)
+            if(this.new_data.password.length < 6 || this.new_data.password.length > 16) return this.$message({showClose: true, message: '请保持密码长度为6-16位之间！', type: 'error'});
+            let newData = this.new_data;
+            this.$ajax.post("/api/teachers", this.$qs.stringify({major_id: newData.major_id, teacher_no: newData.teacher_id, name: newData.name, password: newData.password, title: newData.title, research: newData.research})).then(res => {
+                if(res.data.code == 0) {
+                    document.getElementsByClassName("popo")[1].style.display = "none";
+                    this.$message({
+                        showClose: true,
+                        message: '添加成功！',
+                        type: 'success'
+                    });
+                    this.getTeacherData(1);
+                } else {
+                    this.$message({
+                        showClose: true,
+                        message: "添加失败...",
+                        type: 'error'
+                    });
+                }
+            })
         },
         change_major(value) {
-            this.new_data.major = value;
+            this.new_data.major = value.major;
+            this.new_data.major_id = value.id;
+        },
+        getTeacherData(page, major_id) {
+            // 请求所有教师的数据
+        this.$ajax.get("/api/teachers?limit=" + this.limit + "&page=" + page + "&major_id=" + major_id).then(res => {
+            this.total_page = res.data.data.total;
+            if(res.data.code == 0) {
+                let newData = res.data.data.data.map(item => {
+                    return {id: item.id, major: item.major_name, name: item.name, research: item.research, no: item.teacher_no, title: item.title}
+                });
+                this.tableData = newData;
+            }
+        });
+        },
+        postTeacherFile() {
+            let files = document.getElementById('teacher_file').files;
+            var form = new FormData();
+            form.append('excel_file', files[0]);
+            this.$ajax.post("/api/teachers/import", form).then(res => {
+                if(res.data.code == 0) {
+                    this.$message({
+                        showClose: true,
+                        message: '上传成功',
+                        type: 'success'
+                    });
+                    this.getTeacherData(1);
+                } else {
+                    this.$message({
+                        showClose: true,
+                        message: "上传失败...",
+                        type: 'error'
+                    });
+                }
+            }).catch(() => {
+                this.$message({
+                        showClose: true,
+                        message: "上传失败...",
+                        type: 'error'
+                    });
+            })
         }
     },
     created() {
-        this.tableData.forEach(item => {
-            var major_exit = 0;
-            this.majors.forEach(exit_item => {
-                if(exit_item.value == item.major) major_exit = 1;
-            });
-            if(major_exit == 0) this.majors.push({text: item.major, value: item.major})
+        this.getTeacherData(1);
+        // 获取所有专业的数据（下拉框使用）
+        this.$ajax.get("/api/majors").then(res => {
+            if(res.data.code == 0) {
+                let new_data = res.data.data.data.map(item => {
+                    return {id: item.id, major: item.name};
+                })
+                this.all_majors = new_data;
+                this.majors = new_data;
+                this.all_majors.unshift({id: 0, major: "所有专业"});
+            }
         })
     }
 }

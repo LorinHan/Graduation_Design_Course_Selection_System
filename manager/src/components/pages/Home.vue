@@ -3,7 +3,7 @@
         <div class="top">
             <img src="/static/logo.png" alt="">
             <p>厦门华厦学院 — 毕业设计选题管理系统</p>
-            <el-button type="danger" size="mini" class="right" icon="el-icon-circle-close">退出</el-button>
+            <el-button type="danger" size="mini" class="right" icon="el-icon-circle-close" @click="logout">退出</el-button>
             <el-button type="success" size="mini" plain class="right" icon="el-icon-setting" v-popover:popover_change_pwd>修改密码</el-button>
         </div>
         
@@ -16,8 +16,8 @@
                 trigger="click">
             <h2 style="text-align: center;border-bottom: 1px solid #f2f2f2;">修改密码</h2>
             <div class="pwd_box">
-                <span>原密码：</span><el-input placeholder="请输入原密码" v-model="old_pwd" type="password" size="small" style="width: 40%;"></el-input><br>
-                <span>新密码：</span><el-input placeholder="请输入新密码" v-model="new_pwd" type="password" size="small" style="width: 40%;margin-top: 20px;"></el-input><br>
+                <span style="margin-right:2em;">原密码：</span><el-input placeholder="请输入原密码" v-model="old_pwd" type="password" size="small" style="width: 40%;"></el-input><br>
+                <span style="margin-right:2em;">新密码：</span><el-input placeholder="请输入新密码" v-model="new_pwd" type="password" size="small" style="width: 40%;margin-top: 20px;"></el-input><br>
                 <span>确认新密码：</span><el-input placeholder="确认新密码" v-model="check_pwd" type="password" size="small" style="width: 40%;margin-top: 20px;"></el-input>
             </div>
             <el-button style="display: block;margin: 0 auto;" type="success" @click="send_change_pwd">确定修改</el-button>
@@ -41,6 +41,10 @@
                     <el-menu-item style="padding-left: 0;text-align: center;" index="4" @click="link('学生管理', '/home/students')">
                         <i class="el-icon-menu"></i>
                         <span slot="title">学生管理</span>
+                    </el-menu-item>
+                    <el-menu-item style="padding-left: 0;text-align: center;" index="5" @click="link('用户管理', '/home/users')">
+                        <i class="el-icon-menu"></i>
+                        <span slot="title">用户管理</span>
                     </el-menu-item>
                 </el-menu>
         </div>
@@ -94,6 +98,23 @@
             send_change_pwd() {
                 if(this.old_pwd == "" || this.new_pwd == "" || this.check_pwd == "") return this.$message({ message: '请将表单填写完整', type: 'error'});
                 if(this.check_pwd != this.new_pwd) return this.$message({ message: '新密码与确认密码不一致', type: 'error'});
+                if(this.new_pwd.length < 6 || this.new_pwd.length > 16) {
+                    return this.$message({showClose: true, message: '密码长度请保持在6-16位之间！', type: 'error'});
+                }
+                this.$ajax.post("api/users/password", this.$qs.stringify({"old_password": this.old_pwd, "password": this.new_pwd})).then(res => {
+                    if(res.data.code == 0) {
+                        this.$message({showClose: true, message: '修改成功！请您重新登录。', type: 'success'});
+                        this.$router.push("/");
+                    } else if(res.data.code == 400 && res.data.msg == "原密码错误") {
+                        this.$message({showClose: true, message: '修改失败，请确认您的原密码', type: 'error'});
+                    } else {
+                        this.$message({showClose: true, message: '修改失败...', type: 'error'});
+                    }
+                })
+            },
+            logout() {
+                window.localStorage.setItem("token", "");
+                this.$router.push("/");
             }
         },
         watch: {

@@ -1,7 +1,6 @@
 <template>
   <div id="teacher">
     <!-- <mt-button :type="choicesBtnType[item3 - 1]" class="chioce" size="small" v-for="item3 in max" :key="item3" @click="changeChioce(item3 - 1)">第 {{item3}} 志愿</mt-button>
-
     <mt-tab-container v-model="choices_id[active_choice]">
           <mt-tab-container-item v-for="(inner_item, index) in chioces" :key="'choice-' + index" :id="'choice-' + index">
             <mt-checklist
@@ -11,6 +10,9 @@
             </mt-checklist>
           </mt-tab-container-item>
   </mt-tab-container> -->
+  <h3 style="text-align:center;">当前轮次：{{round}}</h3>
+  <h5 v-if="chioces.length == 0 && ack.length == 0" style="text-align:center;margin-top: 10px;color: #555;">{{tip}}</h5>
+  <h3 v-else style="text-align:center;">{{tip}}</h3>
     <div v-for="(item, index) in chioces" :key="index">
       <p class="zy">第 <mt-badge type="error" size="small">{{index + 1}}</mt-badge> 志愿：</p>
       <mt-checklist
@@ -18,8 +20,13 @@
         :options="item">
       </mt-checklist>
     </div>
-
-    <mt-button size="small" type="danger" class="send" @click="send">确认提交</mt-button>
+  
+    <div v-if="chioces.length == 0 && ack.length == 0" class="routerBtn">
+      <router-link :to="'/intention?task_id=' + this.$route.query.task_id"><mt-button size="small">查看志愿详情</mt-button></router-link>
+      <router-link :to="'/result?task_id=' + this.$route.query.task_id"><mt-button type="primary" size="small">查看结果</mt-button></router-link>
+    </div>
+    <mt-button v-if="chioces.length != 0 && ack.length == 0" size="small" type="danger" class="send" @click="send">确认提交</mt-button>
+    
   </div>
 </template>
 
@@ -31,13 +38,16 @@ export default {
       username: "XXX",
       grade: "副教授",
       choicesBtnType: [],
-      max: 5,
+      max: 0,
       // 选择了该导师的所有学生，二维数组，第一位第一志愿所有学生，第二位第二志愿以此类推
-      chioces: [[{id: 42, name: "小动"}, {id: 129, name: "小明"}, {id: 13, name: "小红2"}], [{id: 40, name: "小东"}], [{id: 1, name: "小明2"}, {id: 3, name: "小红3"}, {id: 2, name: "小红4"}, {id: 12, name: "小明"}], [{id: 112, name: "小小明"}], [{id: 100, name: "小鸟"}]],
+      chioces: [],
       choices_id: [],
       active_choice: 0,
       value: [],
-      prohibit: []
+      prohibit: [],
+      ack: [], // 选择完之后的列表
+      tip: "当前还没有学生选择您哦",
+      round: 0
     }
   },
   methods: {
@@ -50,6 +60,67 @@ export default {
         else this.choicesBtnType[ind] = "default";
       })
       this.active_choice = index;
+    },
+    getData() {
+      this.$ajax.get("/api/t/tasks/" + this.$route.query.task_id).then(res => {
+      if(res.data.code == 0) {
+          // 如果已经选完了，就把结果展示出来就好了，不再处理选择提交的操作
+          localStorage.setItem("round", res.data.data.round);
+          this.round = res.data.data.round;
+          if(res.data.data.round_status != 2) {
+            return this.tip = "请耐心等待当前轮次开始";
+          }
+          if(res.data.data.remaining == 0) {
+            return this.$router.push("/result?task_id=" + this.$route.query.task_id);
+          }
+          if(res.data.data.ack == true) {
+            return this.$router.push("/intention?task_id=" + this.$route.query.task_id);
+          }
+          // if("ack" in res.data.data) {
+          //   return this.ack = res.data.data.ack;
+          // }
+          this.max = res.data.data.remaining;
+          for(var i = 0; i < this.max; i ++) {
+              this.choices_id.push("choice-" +  i);
+          }
+          for(let i = 0; i < this.max; i ++) {this.choicesBtnType.push("default")}
+          // 学生数量总和
+          var student_count = 0;
+          for(let key in res.data.data.intention) {
+            this.$set(this.chioces, key - 1, res.data.data.intention[key].map(item => {
+              student_count += 1;
+              return {id: item.student_no, name: item.student_name}
+            }));
+          }
+          // 判断学生数量是否小于remaining余量，小于的话，max最大值设置为学生数量
+          if(student_count < this.max) {
+            this.max = student_count;
+          }
+          this.tip = "您当前应至少选择 " + this.max + " 位学生";
+          // 构造复选框的数组
+          let count = 0;
+          this.chioces.forEach(item => {
+            // 如果计数器count大于等于max，则当前志愿tab为禁用状态
+            if(count >= this.max) {item.forEach(dis => {
+              dis["disabled"] = true;
+              this.prohibit.push(dis)
+            })}
+            item.forEach(inner => {
+              count ++;
+              inner["label"] = inner.name;
+              inner["value"] = inner.id;
+            })
+            // 如果当前页的人数和小于等于max，全选，禁止取消
+            if(count <= this.max) {
+                item.forEach(inner => {
+                  this.value.push(inner.value);
+                  inner["disabled"] = true;
+                  this.prohibit.push(inner)
+                })
+            }
+          })
+        }
+      })
     },
     send() {
       if(this.value.length != this.max) {return this.$toast({message: "请选满"+this.max+"位同学", iconClass: 'mint-toast-icon mintui mintui-field-warning'});}
@@ -64,50 +135,37 @@ export default {
       choosed_list = choosed_list.substring(0, choosed_list.length - 1);
       this.$messageBox.confirm('选择了以下同学：' + choosed_list).then(action => {
         if(action == "confirm") {
-          this.$toast({message: '操作成功', iconClass: 'mint-toast-icon mintui mintui-success'});
+          this.$ajax.put("/api/t/tasks/" + this.$route.query.task_id, this.value, {headers: {'Content-Type': 'application/json'}}).then(res => {
+                if(res.data.code == 0) {
+                  this.$toast({message: '操作成功', iconClass: 'mint-toast-icon mintui mintui-success'});
+                  // 提交选择之后，重新请求数据
+                  this.getData();
+                  // this.$ajax.get("/api/t/tasks/" + this.$route.query.task_id).then(res => {
+                  //   if(res.data.code == 0) {
+                  //     if("ack" in res.data.data) {
+                  //       this.ack = res.data.data.ack;
+                  //     }
+                  //   }
+                  // })
+                }
+            })
         }
       }).catch(err => {
-
+        console.log(err)
       })
-      
-      // mint-toast-icon mintui mintui-field-warning
-      // console.log(this.value);
     }
   },
   created() {
-    for(var i = 0; i < this.max; i ++) {
-        this.choices_id.push("choice-" +  i)
-    }
-    for(let i = 0; i < this.max; i ++) {this.choicesBtnType.push("default")}
-
+    // console.log(this.$set)
+    // 获取最大选择数量
+    // JSON.parse(localStorage.getItem("tasks")).forEach(item => {
+    //   if(item.id == this.$route.query.task_id) {
+    //     this.max = item.intention_number;
+    //   }
+    // });
     // 获取数据
-    // this.majorBtnType[0] = "primary";
+    this.getData();
     this.choicesBtnType[0] = "primary";
-
-    // 构造复选框的数组
-    let count = 0;
-    this.chioces.forEach(item => {
-      // 如果计数器count大于等于max，则当前志愿tab为禁用状态
-      if(count >= this.max) {item.forEach(dis => {
-        dis["disabled"] = true;
-        this.prohibit.push(dis)
-      })}
-      item.forEach(inner => {
-        count ++;
-        inner["label"] = inner.name;
-        inner["value"] = inner.id;
-      })
-      // 如果当前页的人数和小于等于max，全选，禁止取消
-      if(count <= this.max) {
-          item.forEach(inner => {
-            this.value.push(inner.value);
-            inner["disabled"] = true;
-            this.prohibit.push(inner)
-          })
-      }
-    })
-  },
-  mounted() {
   },
     watch: {
         value: function(val, old) {
@@ -153,4 +211,17 @@ export default {
     margin-left: 10px;
 }
 .logout{float: right;width: 55px;height:25px;font-size: 12px;margin-right: 10px;margin-top: 0px;}
+.ack{
+  h3{text-align: center;margin-bottom: 20px;}
+  .item{
+    border-bottom: 1px solid #f0f0f0;
+    margin-top: 10px;
+    padding-bottom: 5px;
+    span{
+      display: inline-block;
+      text-align: center;
+      width: 30%;
+    }
+  }
+}
 </style>

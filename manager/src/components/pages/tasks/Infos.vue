@@ -2,19 +2,24 @@
   <div>
       <el-tabs type="border-card">
         <el-tab-pane label="基础信息">
-            <div class="base">id: {{id}}
-                <p><span>专业：</span>{{this.data.major}}</p>
+            <div class="base">
+                <!-- id: {{id}} -->
+                <p><span>专业：</span>{{this.data.major_name}}</p>
+                <p><span>学历层次：</span>{{this.data.category == 2 ? "本科" : this.data.category == 1 ? "高职" : "error"}}</p>
                 <p><span>年级：</span>{{this.data.grade}}</p>
                 <p><span>选题状态：</span>{{this.data.status == 0 ? '未发布': this.data.status == 1 ? '已发布': '已结束'}}</p>
                 <p><span>轮次：</span>第{{this.data.round}}轮</p>
-                <p><span>轮次状态：</span>{{this.data.round_status == 0 ? '未发布': this.data.round_status == 1 ? '进行中': '已结束'}}</p>
+                <p><span>轮次状态：</span>{{this.data.round_status == 0 ? '未开启': this.data.round_status == 1 ? '学生选择中': '教师选择中'}}</p>
                 <p><span>导师可选学生默认数量：</span>{{this.data.student_number}}</p>
                 <p><span>学生可选志愿数量：</span>{{this.data.intention_number}}</p>
-                <p><span>描述：</span>{{this.data.description}}</p>
-                <div style="margin-top: 40px;">
-                    <el-button type="success" @click="start">启动第 {{data.round + 1}} 轮</el-button>
-                    <!-- <el-button type="success" v-show="this.data.round_status == 1" @click="next_round">进入下一轮</el-button> -->
+                <p><span>描述：</span>{{this.data.description == "''" ? "" : this.data.description}}</p>
+                <div style="margin-top: 40px;text-align: center;">
+                    <!-- <el-button type="success" @click="start">启动第 {{data.round + 1}} 轮</el-button> -->
+                    <el-button v-if="data.round_status == 0" type="success" @click="start">开启本轮学生选题</el-button>
+                    <el-button v-else-if="data.round_status == 1" type="success" @click="start">开启本轮教师选题</el-button>
+                    <el-button v-else-if="data.round_status == 2" type="success" @click="start">停止当前轮次</el-button>
                     <el-button type="danger" @click="finish">结束当前选题</el-button>
+                    <el-button type="primary">发布结果</el-button>
                 </div>
             </div>
         </el-tab-pane>
@@ -23,7 +28,6 @@
             <!-- 弹出框和折叠面板 -->
             <el-popover
                 ref="popover_pd_teacher"
-                width="800"
                 placement="start"
                 class="popo"
                 popper-class="pd_popo"
@@ -56,7 +60,7 @@
                             <el-table-column
                             label="可选学生数量">
                             <template slot-scope="scope">
-                            <el-input-number v-model="scope.row.no" size="small"></el-input-number>
+                            <el-input-number v-model="scope.row.tea_to_stu_num" size="small"></el-input-number>
                             </template>
                             </el-table-column>
                         </el-table>
@@ -88,10 +92,12 @@
                 </el-table-column>
                 <el-table-column
                 label="操作">
-                <el-button type="danger" size="mini">删除</el-button>
+                <template slot-scope="scope">
+                    <el-button type="danger" size="mini" @click="delTaskTeacher(scope.row)">删除</el-button>
+                </template>
                 </el-table-column>
             </el-table>
-            <el-button class="sure" type="success" @click="send_pd_teachers">确认提交</el-button>
+            <!-- <el-button class="sure" type="success" @click="send_pd_teachers">确认提交</el-button> -->
         </el-tab-pane>
         <el-tab-pane label="志愿详情">
             <el-table
@@ -119,6 +125,7 @@
                 </el-table-column>
                 <el-table-column
                 prop="submit_time"
+                width="200"
                 label="提交时间">
                 </el-table-column>
                 <el-table-column
@@ -131,21 +138,23 @@
             </el-table>
         </el-tab-pane>
         <el-tab-pane label="配对详情">
-            <h3 class="title">配对情况</h3>
-            <div class="pd_infos">
+            <!-- <h3 class="title" style="margin-bottom: 20px;">配对情况</h3> -->
+            <!-- <div class="pd_infos">
                 <p>学生：<span>已成功配对：<strong>55 </strong>人;</span><span>未配对：<strong style="color:red;">20 </strong>人；</span></p>
                 <p>教师：<span>已选满学生的导师：<strong>8 </strong>人;</span><span>未选满学生的导师：<strong style="color:red;">4 </strong>人；</span></p>
-            </div>
+            </div> -->
               <!-- 筛选栏 -->
                 <div class="select">
                     <el-dropdown trigger="click" @command="selectStatus">
                     <el-button type="success" size="mini">
-                        {{pd_status == 0 ? '未配对' : pd_status == 1 ? '已配对' : pd_status}}<i class="el-icon-arrow-down el-icon--right"></i>
+                        {{pd_status == 0 ? '未匹配' : pd_status == 1 ? '匹配成功' : "所有"}}<i class="el-icon-arrow-down el-icon--right"></i>
                     </el-button>
                     <el-dropdown-menu slot="dropdown">
-                        <el-dropdown-item v-for="item in [{text: '所有', value: '所有'}, {text: '未配对', value: 0}, {text: '已配对', value: 1}]" :key="item.value" :command="item.value">{{item.text}}</el-dropdown-item>
+                        <el-dropdown-item v-for="item in [{text: '所有', value: -1}, {text: '未匹配', value: 0}, {text: '匹配成功', value: 1}]" :key="item.value" :command="item.value">{{item.text}}</el-dropdown-item>
                     </el-dropdown-menu>
                     </el-dropdown>
+                    <el-input v-model="select_student" style="width:130px;" placeholder="按学号查找"></el-input>
+                    <el-input v-model="select_teacher" style="width:130px;" placeholder="按教工号查找"></el-input>
                     <el-button type="primary" style="margin-left: 20px;" size="mini" @click="send_select">筛选</el-button>
                     <el-button type="danger" size="mini" @click="reset_select">重置</el-button>
                 </div>
@@ -162,8 +171,8 @@
                 <p>选择导师：
                     <el-dropdown trigger="click" @command="change_teacher">
                         <el-button type="primary" size="mini">{{distribution_data.teacher == "" ? "请选择导师" : distribution_data.teacher}}</el-button>
-                        <el-dropdown-menu slot="dropdown">
-                            <el-dropdown-item v-for="item in no_student_data" :key="item.id" :command="[item.teacher_no, item.name]">{{item.name}}</el-dropdown-item>
+                        <el-dropdown-menu slot="dropdown" class="shit">
+                            <el-dropdown-item v-for="item in no_student_data" :key="item.id" :command="[item.teacher_no, item.name]">{{item.teacher_no + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + item.name}}</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
                 </p>
@@ -198,8 +207,10 @@
                 label="配对方式">
                 </el-table-column>
                 <el-table-column
-                prop="submit_time"
-                label="提交时间">
+                label="状态">
+                <template slot-scope="scope">
+                    {{scope.row.status == 1 ? "配对成功" : "未配对"}}
+                </template>
                 </el-table-column>
                 <el-table-column
                 label="操作">
@@ -219,125 +230,51 @@ export default {
         return {
             id: this.$route.query.id,
             data: [],
-            tableData: [{
-                round: 1,
-                student: '小李子',
-                teacher: "朱国华",
-                level: 1,
-                submit_time: "2019-08-12",
-                result: 0
-                }, {
-                round: 1,
-                student: '小李子',
-                teacher: "朱国华",
-                level: 1,
-                submit_time: "2019-08-12",
-                result: 0
-                },{
-                round: 1,
-                student: '小李子',
-                teacher: "朱国华",
-                level: 1,
-                submit_time: "2019-08-12",
-                result: 0
-                },{
-                round: 1,
-                student: '小李子',
-                teacher: "朱国华",
-                level: 1,
-                submit_time: "2019-08-12",
-                result: 0
-                }],
+            tableData: [],
             round_list: [],
             multipleSelection: {}, // 配置教师的选项
             results: [{text: "待确认", value: 0}, {text: "确认成功", value: 1}, {text: "选择失败", value: 2}],
-            pdTableData: [
-                    {id: 0, student_no: 171075133, student: "韩罗霖", teacher: ""},
-                    {id: 2, student_no: 171075134, student: "郑惠鸿", teacher: ""},
-                    {id: 1, student_no: 171075135, student: "石婷", teacher: ""},
-                    {
-                    id: 10, 
-                    round: 1,
-                    student_no: 171075111,
-                    student: '小李子',
-                    teacher: "朱国华",
-                    user_assigned: 1,
-                    submit_time: "2019-08-12"
-                    }, {
-                    id: 20, 
-                    round: 1,
-                    student_no: 171075111,
-                    student: '小李子',
-                    teacher: "朱国华",
-                    user_assigned: 1,
-                    submit_time: "2019-08-12"
-                    },{
-                    id: 30, 
-                    round: 1,
-                    student_no: 171075111,
-                    student: '小李子',
-                    teacher: "朱国华",
-                    user_assigned: 1,
-                    submit_time: "2019-08-12"
-                    },{
-                    id: 40, 
-                    round: 1,
-                    student_no: 171075111,
-                    student: '小李子',
-                    teacher: "朱国华",
-                    user_assigned: 1,
-                    submit_time: "2019-08-12"
-                    }
-                ],
+            pdTableData: [],
             // 未选满的教师
-            no_student_data: [
-                {id: 1, teacher_no: 171075133, name: "朱国华"},
-                {id: 2, teacher_no: 171075133, name: "张巧玲"},
-                {id: 3, teacher_no: 171075133, name: "何焰"},
-                {id: 4, teacher_no: 171075133, name: "谢维盛"},
-            ],
-            pd_status: "所有",
+            no_student_data: [],
+            pd_status: -1,
             // 已选择的教师列表
-            choosed_teachers: [{
-                major: '电子商务',
-                no: '1230564',
-                name: "朱国华",
-                title: "副教授"
-                }, {
-                major: '电子商务',
-                no: '12305642',
-                name: "朱国华2",
-                title: "副教授"
-                },{
-                major: '国际贸易',
-                no: '1230564',
-                name: "张巧玲",
-                title: "副教授"
-                }, {
-                major: '会计',
-                no: '1230564',
-                name: "谢维盛",
-                title: "副教授"
-                }, {
-                major: '审计',
-                no: '1230564',
-                name: "何焰",
-                title: "副教授"
-            }],
+            choosed_teachers: [],
             // 所有教师按专业分类
-            teachers_data: [{major: "电子商务", list: [{no: '1230564', name: "何焰", title: "副教授"}, {no: '12305642', name: "张巧玲", title: "副教授"}]}, {major: "国际贸易", list: [{no: '12364', name: "朱勇征", title: "副教授"}]}, {major: "商务英语", list: [{no: '4561234', name: "陈都", title: "副教授"}]}],
+            teachers_data: [],
                 activeNames: ['电子商务'],
             // 为每一个学生指定教师的数据集
-            distribution_data: {student_no: "", student: "", teacher_no: "", teacher: ""}
+            distribution_data: {student_no: "", student: "", teacher_no: "", teacher: "", id: 0},
+            all_majors: [],
+            select_student: "",
+            select_teacher: ""
         }
     },
     methods: {
         start() {
-            this.$message({
-                message: '启动成功！',
-                type: 'success'
+            // 发送轮次启停的请求：
+            this.$ajax.put("/api/tasks/" + this.id).then(res => {
+                if(res.data.code == 0) {
+                    this.$message({
+                        message: '启动成功！',
+                        type: 'success'
+                    });
+                    // 刷新数据
+                    this.$ajax.get("/api/tasks/" + this.id).then(data => {
+                        this.data = data.data.data;
+                    });
+                    // 获取分配在该任务的教师
+                    this.getChoosedTeachers();
+                    // 获取可分配教师
+                    this.forEachNoStudentData();
+                    // 获取志愿详情列表
+                    this.getIntentions();
+                    // 获取已配对的志愿列表
+                    this.getPdIntentions(-1);
+                    // 获取还有余量的老师
+                    this.get_no_student_data();
+                }
             });
-            this.$router.push("/home/tasks")
         },
         next_round() {
             this.$message({
@@ -365,8 +302,9 @@ export default {
             else if(row.result == 2) {return "选择失败"}
         },
         pd_formatter(row, column) {
-            if(row.user_assigned == 1) {return "用户人工分配"}
-            else if(row.user_assigned == 0) {return "系统分配"}
+            if(row.teacher == "") {return ""}
+            if(row.user_assigned == 1) {return "用户自行分配"}
+            else if(row.user_assigned == 2) {return "管理员系统分配"}
         },
         // 配对详情中分配导师的下拉框
         change_teacher(value) {
@@ -375,23 +313,152 @@ export default {
         },
         selectStatus(value) { this.pd_status = value; },
         send_select() {
-          console.log(this.pd_status)
+            this.getPdIntentions(this.pd_status, this.select_student, this.select_teacher);
         },
-        reset_select() {this.pd_status = "所有"},
+        reset_select() {this.pd_status = -1;this.select_student = "";this.select_teacher = ""},
+        // 分配教师栏的弹出层的下拉选项框被操作, val是所有被选中的选项的数组
         handleSelectionChange(val, major) {
-            console.log(major)
             this.multipleSelection[major] = val;
         },
-        send_pd_teachers() {console.log(this.multipleSelection)},
+        // 分配教师栏中的确定按钮，提交选中的教师作为该选题任务的教师
+        send_pd_teachers() {
+            let send_data = []
+            for(let item in this.multipleSelection) {
+                this.multipleSelection[item].map(major_item => {
+                    send_data.push({"teacher_no": major_item.no, "assigned_number": major_item.tea_to_stu_num});
+                });
+            }
+            this.$ajax.post("/api/tasks/" + this.id + "/teachers/allocate", send_data, {headers: {'Content-Type': 'application/json'}}).then(res => {
+                if(res.data.code == 0) {
+                    document.getElementsByClassName("pd_popo")[0].style.display = "none";
+                    this.getChoosedTeachers();
+                    this.$message({
+                        showClose: true,
+                        message: "分配成功！",
+                        type: 'success'
+                    });
+                }
+            })
+        },
         // 给每一个学生指定分配教师
         distribution(row) {
             document.getElementsByClassName("pd_info_popo")[0].style.display = "block"
             this.distribution_data.student_no = row.student_no;
             this.distribution_data.student = row.student;
+            this.distribution_data.id = row.id;
         },
         close_distribution_popo() {this.distribution_data.teacher = "";this.distribution_data.teacher_no = "";document.getElementsByClassName("pd_info_popo")[0].style.display = "none";},
+        // 系统分配
         send_distribution() {
-            console.log(this.distribution_data)
+            console.log(this.distribution_data);
+            this.$ajax.put("/api/tasks/" + this.id + "/students/" + this.distribution_data.id, this.$qs.stringify({teacher_no: this.distribution_data.teacher_no})).then(res => {
+                if(res.data.code == 0) {
+                    document.getElementsByClassName("pd_popo")[1].style.display = "none";
+                    // 获取分配在该任务的教师
+                    this.getChoosedTeachers();
+                    // 获取可分配教师
+                    this.forEachNoStudentData();
+                    // 获取志愿详情列表
+                    this.getIntentions();
+                    // 获取已配对的志愿列表
+                    this.getPdIntentions(-1);
+                    // 获取还有余量的老师
+                    this.get_no_student_data();
+                    this.$message({
+                        showClose: true,
+                        message: '恭喜你，这是一条成功消息',
+                        type: 'success'
+                    });
+                }
+            })
+        },
+        // 删除选题中的教师
+        delTaskTeacher(row) {
+            let tea_id = row.id;
+            this.$ajax.delete("/api/tasks/" + this.id + "/teachers/" + tea_id).then(res => {
+                if(res.data.code == 0) {
+                    this.getChoosedTeachers();
+                }
+            })
+            // let taskId = this.$route.query.id;
+            // console.log(teaNo, taskId);
+        },
+        // 获取分配在该任务的教师
+        getChoosedTeachers() {
+             this.$ajax.get("/api/tasks/" + this.id + "/teachers").then(res => {
+                 if(res.data.code == 0) {
+                        let newData = res.data.data.map(item => {
+                            return {id: item.id, major: item.major_name, name: item.name, no: item.teacher_no, title: item.title}
+                        });
+                        this.choosed_teachers = newData;
+                    }
+            });
+        },
+        // 获取未分配满学生的教师
+        getNoStudentData(major, major_id) {
+            this.$ajax.get("/api/tasks/" + this.id + "/teachers/available?major_id=" + major_id).then(res => {
+                if(res.data.code == 0) {
+                    let data = res.data.data.map(item => {
+                    return {no: item.teacher_no, name: item.name, title: item.title, tea_to_stu_num: this.data.student_number}
+                });
+                this.teachers_data.push({major: major, list: data});
+                }
+            })
+        },
+        // 循环专业列表获取每个专业未分配满学生的教师
+        forEachNoStudentData() {
+            this.teachers_data = [];
+            this.all_majors.forEach(item => {
+                this.getNoStudentData(item.major, item.id)
+            });
+        },
+        // 获取志愿详情列表
+        getIntentions() {
+            this.$ajax.get("api/tasks/" + this.id + "/intentions").then(res => {
+                if(res.data.code == 0) {
+                    this.tableData = res.data.data.data.map(item => {
+                        return {
+                            round: item.round,
+                            student: item.student_name,
+                            teacher: item.teacher_name,
+                            level: item.level,
+                            submit_time: item.submit_time,
+                            result: item.result
+                        }
+                    })
+                }
+            })
+        },
+        // 获取已配对的志愿列表
+        getPdIntentions(status, stu_no, tea_no) {
+            let url = "/api/tasks/" + this.id + "/students?status=" + status;
+            if(stu_no) {url += "&student_no=" + stu_no}
+            if(tea_no) {url += "&teacher_no=" + tea_no}
+            // if(status) {
+            //     url += "?status="
+            // }
+            this.$ajax.get(url).then(res => {
+                if(res.data.code == 0) {
+                    this.pdTableData = res.data.data.data.map(item => {
+                        return {
+                            id: item.id,
+                            round: item.round,
+                            student_no: item.student_no,
+                            student: item.student_name,
+                            teacher: item.teacher_name,
+                            user_assigned: item.assigned,
+                            status: item.status
+                        }
+                    })
+                }
+            })
+        },
+        // 获取有余量的老师
+        get_no_student_data() {
+            // no_student_data
+            this.$ajax.get("/api/tasks/" + this.id + "/teachers?free=1").then(res => {
+                this.no_student_data = res.data.data;
+            })
         }
     },
     created() {
@@ -402,38 +469,61 @@ export default {
             });
             if(round_exist == 0) this.round_list.push({text: item.round, value: item.round})
         });
-        this.id = this.$route.query.id
-                // 请求数据
-        this.$ajax.get("https://www.easy-mock.com/mock/5d5667dddddc21142154b2e0/example/query" + this.id).then(data => {
-            this.data = data.data.data
+        this.id = this.$route.query.id;
+        // 获取所有专业
+        this.$ajax.get("/api/majors").then(res => {
+            if(res.data.code == 0) {
+                this.all_majors = res.data.data.data.map(item => {
+                    return {id: item.id, major: item.name};
+                })
+            }
         })
+                // 请求数据
+        this.$ajax.get("/api/tasks/" + this.id).then(data => {
+            this.data = data.data.data;
+        });
+        // 获取分配在该任务的教师
+        this.getChoosedTeachers();
+        // 获取可分配教师
+        this.forEachNoStudentData();
+        // 获取志愿详情列表
+        this.getIntentions();
+        // 获取已配对的志愿列表
+        this.getPdIntentions(-1);
+        // 获取还有余量的老师
+        this.get_no_student_data();
     },
     watch: {
         $route: function(to, from) {
-            this.id = this.$route.query.id
+            this.id = this.$route.query.id;
             if(to.path == "/home/infos") {
                 // 请求数据
-                this.$ajax.get("https://www.easy-mock.com/mock/5d5667dddddc21142154b2e0/example/query" + this.id).then(data => {
+                this.$ajax.get("/api/tasks/" + this.id).then(data => {
                     this.data = data.data.data
-                })
+                });
+                this.getChoosedTeachers();
+                this.forEachNoStudentData();
+                // 获取志愿详情列表
+                this.getIntentions();
+                // 获取已配对的志愿列表
+                this.getPdIntentions(-1);
+                // 获取还有余量的老师
+                this.get_no_student_data();
             }
         }
-    },
-    mounted() {
-      // 默认勾选项
-    //   this.$refs.multipleTable.toggleRowSelection(this.teachers_data[0],true);
     }
 }
 </script>
 
 <style scoped lang="less">
     .base{
-        width: 30%;
-        margin: 0 auto;
+        width: 450px;
+        margin: 20px auto 0 auto;
         p{
-            margin: 10px 0;
-            font-weight: 600;
-            span{font-weight: 400;}
+            height: 40px;
+            line-height: 40px;
+            border: 1px solid #ccc;
+            span{display: inline-block; width: 200px; height: 100%; padding-left: 5%; font-weight: 400; margin-right: 15%; border-right: 1px solid #ccc;}
         }
     }
     .pd_infos{
@@ -453,7 +543,7 @@ export default {
     }
         .select{margin-bottom: 20px; padding: 10px 5px; box-shadow: 0 0 5px #ccc;}
         .sure{display: block;margin: 20px auto;}
-        .popo{h2{text-align: center; line-height: 40px;border-bottom: 1px solid #f2f2f2;}}
+        .popo{margin-left: 0; h2{text-align: center; line-height: 40px;border-bottom: 1px solid #f2f2f2;}}
     .pd_info_popo{
         p{padding-left: 43%; margin-top: 30px;}
     }

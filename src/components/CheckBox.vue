@@ -2,12 +2,12 @@
     <div class="checkBox">
         <mt-checklist
           class="teachers_list"
-          :title="'请先勾选 ' + max + ' 位心仪的教师'"
+          :title="'请先勾选 ' + max + ' 位心仪的教师 ^_^'"
           v-model="value"
           :options="options">
         </mt-checklist>
         <div class="infosList">
-            <p v-for="item in teachers" :key='item' @click="open(item)"><i class="iconfont icon-chakan"></i></p>
+            <p v-for="item in teachers" :key='item.id' @click="open(item)"><i class="iconfont icon-chakan"></i></p>
         </div>
 
 
@@ -36,7 +36,7 @@ export default {
         }
     },
     created() {
-        this.teachers.forEach(item => this.options.push({label: item, value: item, disabled: false}));
+        this.teachers.forEach(item => this.options.push({label: item.name, value: {name: item.name, no: item.teacher_no}, disabled: false}));
         this.value = this.$props.choosed;
     },
     methods: {
@@ -48,11 +48,18 @@ export default {
         choose() {
             if(this.value.length == this.$props.max) {
                 this.$toast({message: "最多只能选择 " + this.max + " 位导师哦", position: "middle", duration: 2500, iconClass: "mint-toast-icon mintui mintui-field-warning"})
-            }else if(this.value.includes(this.choosedName)) {
-                this.$toast({message: "已选择!", position: "middle", duration: 2000})
-            } else {
-                this.value.push(this.choosedName);
             }
+            this.value.forEach(item => {
+                if(item.no == this.choosedName.teacher_no) {
+                    return this.$toast({message: "已选择!", position: "middle", duration: 2000});
+                }
+            });
+            this.value.push({name: this.choosedName.name, no: this.choosedName.teacher_no});
+            // else if(this.value.includes(this.choosedName)) {
+            //     this.$toast({message: "已选择!", position: "middle", duration: 2000})
+            // } else {
+            //     this.value.push(this.choosedName);
+            // }
             this.popupVisible = false;
         }
     },
@@ -61,7 +68,11 @@ export default {
             if(old.length == this.max) this.options.forEach(item => item.disabled = false)
             if(val.length >= this.max) {
                 this.options.forEach(item => {
-                    if(!this.value.includes(item.value)) item.disabled = true;
+                    item.disabled = true;
+                    this.value.forEach(valItem => {
+                        if(valItem.no == item.value.no) item.disabled = false;
+                    })
+                    // if(!this.value.includes(item.value)) item.disabled = true;
                 })
             }
         }
@@ -70,7 +81,7 @@ export default {
 </script>
 <style lang="less" scoped>
 .teachers_list{width:70%; float: left;}
-.infosList{width: 30%; float: left;padding-top: 34px;box-sizing: border-box;padding-right: 10px;}
+.infosList{width: 20%; float: right;padding-top: 34px;box-sizing: border-box;padding-right: 10px;}
 .infosList > p{min-height: 48px;text-align: center;}
 .infosList > p > i{line-height: 48px;}
 .mint-popup{background-color: rgba(0, 0, 0, 0); width: 70%;color: #fff; padding: 10px;}

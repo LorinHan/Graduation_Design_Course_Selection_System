@@ -19,7 +19,19 @@ export default {
     },
     methods: {
         login() {
-            this.$router.push("/task");
+            this.$ajax.post("/api/auth/login", this.$qs.stringify({"name": this.username, "password": this.password})).then(res => {
+                if(res.data.code == 0) {
+                    localStorage.setItem("token", res.data.data.token);
+                    this.$router.push("/task");
+                    // this.$ajax.get("api/t/tasks").then(res2 => {
+                    //     localStorage.setItem("tasks", JSON.stringify(res2.data.data));
+                    //     this.$router.push("/task");
+                    // })
+                } else {
+                    this.$toast({message: "登陆失败", iconClass: 'mint-toast-icon mintui mintui-field-error'});
+                }
+            })
+            // this.$router.push("/task");
         }
     }
 }

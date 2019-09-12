@@ -4,10 +4,12 @@ import Vue from 'vue'
 import App from './App'
 import http from './router/http.js';
 import router from './router'
-import store from './store/store.js'
-import {Button, Input, Col, Menu, MenuItem, Submenu, MenuItemGroup, Table, TableColumn, Popover, Tag, Tabs, TabPane, Dropdown, DropdownMenu, DropdownItem, InputNumber, Radio, Message, Switch, Collapse, CollapseItem} from "element-ui";
+import store from './store/store.js';
+import Qs from 'qs';
+import {Button, Input, Col, Menu, MenuItem, Submenu, MenuItemGroup, Table, TableColumn, Popover, Tag, Tabs, TabPane, Dropdown, DropdownMenu, DropdownItem, InputNumber, Radio, Message, Switch, Collapse, CollapseItem, Pagination, MessageBox} from "element-ui";
 
 Vue.prototype.$ajax = http
+Vue.prototype.$qs = Qs;
 Vue.config.productionTip = false
 Vue.use(Button)
 Vue.use(Input)
@@ -30,7 +32,9 @@ Vue.use(Radio)
 Vue.use(Switch)
 Vue.use(Collapse)
 Vue.use(CollapseItem)
+Vue.use(Pagination)
 Vue.prototype.$message = Message
+Vue.prototype.$messageBox = MessageBox
 
 /* eslint-disable no-new */
 new Vue({

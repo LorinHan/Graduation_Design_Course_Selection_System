@@ -22,8 +22,19 @@
 export default {
     data() {
         return {
-            data_list: [{"task_id": 1, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}, {"task_id": 2, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}, {"task_id": 3, "task_name": "2016-2017国际贸易毕业设计", "major": "国际贸易"}]
+            data_list: []
         }
+    },
+    created() {
+        this.$ajax.get("api/t/tasks").then(res2 => {
+            this.data_list = res2.data.data.map(item => {
+                return {task_id: item.id, task_name: item.grade + "级" + item.major_name + "毕业设计", major: item.major_name, intention_number: item.intention_number}
+            });
+        })
+        // this.data_list = JSON.parse(localStorage.getItem("tasks")).map(item => {
+        //     return {task_id: item.id, task_name: item.grade + "级" + item.major_name + "毕业设计", major: item.major_name, intention_number: item.intention_number}
+        // });
+        // console.log(this.data_list)
     }
 }
 </script>

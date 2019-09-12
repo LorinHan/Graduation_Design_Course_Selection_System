@@ -6,8 +6,8 @@
             </div>
            <draggable v-model="teachers"  :options="{animation: 150, dragClass: 'chosen', ghostClass: 'ghost'}" style="overflow: hidden;">
                 <transition-group name="flip-list" class="teachers">
-                    <div class="item" v-for="(teacher, index) in teachers" :key="-index">
-                        <span class="teacherName">{{teacher}}</span>
+                    <div class="item" v-for="teacher in teachers" :key="teacher.no">
+                        <span class="teacherName">{{teacher.name}}</span>
                     </div>
                 </transition-group>
             </draggable>
@@ -27,6 +27,19 @@ export default {
     methods: {
         finish() {
             console.log(this.teachers)
+            let send_data = [];
+            this.teachers.forEach(item => {
+                send_data.push(item.no)
+            })
+            this.$ajax.post("/api/s/intentions", send_data, {headers: {'Content-Type': 'application/json'}}).then(res => {
+                if(res.data.code == 0) {
+                    alert("提交成功！");
+                    this.$router.push("/intention");
+                } else {
+                    alert("提交失败，请稍后重试。");
+                    this.$router.push("/intention");
+                }
+            })
         },
         addActive(e) {
             e.target.classList.add("active");
@@ -53,9 +66,8 @@ export default {
     .tips{
         width: 100%;
         height: 25px;
-        color: #c0c0c0;
-        font-size: 12px;
-        line-height: 25px;
+        color: #333;
+        font-size: 13px;
         text-align: center;
     }
     .zys{
