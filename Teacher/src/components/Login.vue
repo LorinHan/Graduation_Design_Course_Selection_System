@@ -28,7 +28,7 @@ export default {
                     //     this.$router.push("/task");
                     // })
                 } else {
-                    this.$toast({message: "登陆失败", iconClass: 'mint-toast-icon mintui mintui-field-error'});
+                    this.$toast({message: res.data.msg, iconClass: 'mint-toast-icon mintui mintui-field-error'});
                 }
             })
             // this.$router.push("/task");

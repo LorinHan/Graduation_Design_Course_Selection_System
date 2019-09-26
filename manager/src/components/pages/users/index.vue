@@ -86,7 +86,7 @@ export default {
                     this.getData();
                     return this.$message({showClose: true, message: '添加成功', type: 'success'});
                 } else {
-                    this.$message({showClose: true, message: '添加失败', type: 'error'});
+                    this.$message({showClose: true, message: res.data.msg, type: 'error'});
                 }
             })
         },
@@ -100,6 +100,11 @@ export default {
                             this.$message({
                                 type: 'success',
                                 message: name + '的密码重置成功'
+                            });
+                        } else {
+                            this.$message({
+                                type: 'success',
+                                message: res.data.msg
                             });
                         }
                     })
@@ -136,7 +141,7 @@ export default {
                     } else {
                         this.$message({
                             type: 'error',
-                            message: '删除失败!'
+                            message: res.data.msg
                         });
                     }
                 })

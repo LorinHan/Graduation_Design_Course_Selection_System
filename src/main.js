@@ -15,6 +15,7 @@ import Cell from 'mint-ui/lib/cell';
 import Checklist from "mint-ui/lib/checklist";
 import Popup from "mint-ui/lib/popup";
 import Toast from 'mint-ui/lib/toast';
+import MessageBox from "mint-ui/lib/message-box";
 import Badge from 'mint-ui/lib/badge';
 
 Vue.component(Button.name, Button);
@@ -27,7 +28,8 @@ Vue.component(Badge.name, Badge);
 
 // Vue.use(VueDND)
 
-Vue.prototype.$toast = Toast   
+Vue.prototype.$toast = Toast;  
+Vue.prototype.$messageBox = MessageBox;
 Vue.prototype.$qs = Qs;
 Vue.prototype.$ajax = http
 

@@ -1,5 +1,6 @@
 <template>
   <div id="teacher">
+    <p style="height:20px;background-color:#f0f0f0;font-size:12px;text-align:center;margin-bottom: 20px;">剩余时间：<strong>{{Math.floor(remain_time / 60)}}</strong>分钟<strong>{{remain_time % 60}}</strong>秒</p>
     <!-- <mt-button :type="choicesBtnType[item3 - 1]" class="chioce" size="small" v-for="item3 in max" :key="item3" @click="changeChioce(item3 - 1)">第 {{item3}} 志愿</mt-button>
     <mt-tab-container v-model="choices_id[active_choice]">
           <mt-tab-container-item v-for="(inner_item, index) in chioces" :key="'choice-' + index" :id="'choice-' + index">
@@ -10,6 +11,7 @@
             </mt-checklist>
           </mt-tab-container-item>
   </mt-tab-container> -->
+  <router-view id="box"></router-view>
   <h3 style="text-align:center;">当前轮次：{{round}}</h3>
   <h5 v-if="chioces.length == 0 && ack.length == 0" style="text-align:center;margin-top: 10px;color: #555;">{{tip}}</h5>
   <h3 v-else style="text-align:center;">{{tip}}</h3>
@@ -22,8 +24,8 @@
     </div>
   
     <div v-if="chioces.length == 0 && ack.length == 0" class="routerBtn">
-      <router-link :to="'/intention?task_id=' + this.$route.query.task_id"><mt-button size="small">查看志愿详情</mt-button></router-link>
-      <router-link :to="'/result?task_id=' + this.$route.query.task_id"><mt-button type="primary" size="small">查看结果</mt-button></router-link>
+      <router-link :to="'/teacher/intention?task_id=' + this.$route.query.task_id"><mt-button size="small">查看志愿详情</mt-button></router-link>
+      <router-link :to="'/teacher/result?task_id=' + this.$route.query.task_id"><mt-button type="primary" size="small">查看结果</mt-button></router-link>
     </div>
     <mt-button v-if="chioces.length != 0 && ack.length == 0" size="small" type="danger" class="send" @click="send">确认提交</mt-button>
     
@@ -47,7 +49,8 @@ export default {
       prohibit: [],
       ack: [], // 选择完之后的列表
       tip: "当前还没有学生选择您哦",
-      round: 0
+      round: 0,
+      remain_time: 0
     }
   },
   methods: {
@@ -64,18 +67,26 @@ export default {
     getData() {
       this.$ajax.get("/api/t/tasks/" + this.$route.query.task_id).then(res => {
       if(res.data.code == 0) {
+          if(res.data.data.remain_time) {
+              this.remain_time = res.data.data.remain_time;
+              window.setInterval(() => {this.remain_time -= 1}, 1000);
+          }
           // 如果已经选完了，就把结果展示出来就好了，不再处理选择提交的操作
           localStorage.setItem("round", res.data.data.round);
           this.round = res.data.data.round;
+          if(res.data.data.ack == true) {
+            return this.tip = "当前轮次您已进行选择";
+          }
+          if(res.data.data.remaining == 0) {
+            this.tip = "您已选满学生了";
+            return this.$router.push('/teacher/result?task_id=' + this.$route.query.task_id);
+          }
           if(res.data.data.round_status != 2) {
             return this.tip = "请耐心等待当前轮次开始";
           }
-          if(res.data.data.remaining == 0) {
-            return this.$router.push("/result?task_id=" + this.$route.query.task_id);
-          }
-          if(res.data.data.ack == true) {
-            return this.$router.push("/intention?task_id=" + this.$route.query.task_id);
-          }
+          // if(res.data.data.ack == true) {
+          //   return this.$router.push('/teacher/intention?task_id=' + this.$route.query.task_id);
+          // }
           // if("ack" in res.data.data) {
           //   return this.ack = res.data.data.ack;
           // }
@@ -89,7 +100,7 @@ export default {
           for(let key in res.data.data.intention) {
             this.$set(this.chioces, key - 1, res.data.data.intention[key].map(item => {
               student_count += 1;
-              return {id: item.student_no, name: item.student_name}
+              return {id: item.student_no, name: item.student_name + " —— " + item.grade + "级" + item.class}
             }));
           }
           // 判断学生数量是否小于remaining余量，小于的话，max最大值设置为学生数量
@@ -128,7 +139,7 @@ export default {
       this.value.forEach(val => {
         this.chioces.forEach(item => {
           item.forEach(inner_item => {
-            if(inner_item.id == val) choosed_list += inner_item.name + "、"
+            if(inner_item.id == val) choosed_list += inner_item.name.split("——")[0] + "、"
           })
         })
       });
@@ -139,7 +150,8 @@ export default {
                 if(res.data.code == 0) {
                   this.$toast({message: '操作成功', iconClass: 'mint-toast-icon mintui mintui-success'});
                   // 提交选择之后，重新请求数据
-                  this.getData();
+                  // this.getData();
+                  window.location.reload();
                   // this.$ajax.get("/api/t/tasks/" + this.$route.query.task_id).then(res => {
                   //   if(res.data.code == 0) {
                   //     if("ack" in res.data.data) {
@@ -190,6 +202,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
+#box{position: absolute; width: 100%; background-color: #fff; overflow: hidden; box-shadow: 0 0 4px #ccc;left: 0; top: 20%;padding-top: 20px;padding-bottom: 20px;border-radius: 5px;}
 #teacher{
   margin-top: -5%;
   padding: 10px;

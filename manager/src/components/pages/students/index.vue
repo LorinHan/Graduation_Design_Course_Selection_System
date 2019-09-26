@@ -49,10 +49,13 @@
                 </el-dropdown>
             </p>
             <p class="new_p"><span class="new_span">密码：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.password" placeholder="密码"></el-input></p>
+            <p class="new_p"><span class="new_span">班级：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.class" placeholder="班级"></el-input></p>
+            <p class="new_p"><span class="new_span">手机号：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.mobile" placeholder="手机号"></el-input></p>
+            <p class="new_p"><span class="new_span">QQ号：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.qq" placeholder="QQ号"></el-input></p>
             <el-button @click="send_new_data" type="success" style="display: block;margin: 10px auto;">确 定</el-button>
         </el-popover>
+      <el-button type="warning" size="small" class="newBtn fileBtn" icon="el-icon-printer" @click="fileClick">批量导入</el-button>
         <input class="newBtn" type="file" id="students_file" @change="postTeacherFile">
-      <!-- <el-button type="warning" size="small" class="newBtn" icon="el-icon-printer">批量导入</el-button> -->
       <el-button type="primary" size="small" class="newBtn"  v-popover:popover_student icon="el-icon-circle-plus-outline">新增</el-button>
       <MyTable :data="tableData" :handleEdit="handleEdit" :handleDetail="handleDetail" :majors="majors" :grade="grade" :filterMajor="filterMajor" :filterGrade="filterGrade" :type="'students'" :total_page="total_page" @getTeacherData="getStudentsData" :limit="limit"></MyTable>
   </div>
@@ -69,13 +72,15 @@ export default {
             grade_list: [],
             majors: [],
             all_majors: ["电子商务", "国际贸易", "会计", "审计"],
-            new_data: {name: "", student_id: "", major: "请选择专业", grade: "请选择年级", password: "", major_id: "", category: {id: 2, value: "本科"}},
+            new_data: {name: "", student_id: "", major: "请选择专业", grade: "请选择年级", password: "", major_id: "", category: {id: 2, value: "本科"}, mobile: "", class: "", qq: ""},
             limit: 20,
             total_page: 0,
             categorys: [{id: 2, value: "本科"}, {id: 1, value: "高职"}]
         }
     },
     methods: {
+        // 触发file按钮
+        fileClick() { document.getElementById('students_file').click(); },
         handleEdit(row) {
             console.log(row);
         },
@@ -91,7 +96,7 @@ export default {
         send_new_data() {
             if(this.new_data.password.length < 6 || this.new_data.password.length > 16) return this.$message({showClose: true, message: '请保持密码长度为6-16位之间！', type: 'error'});
             let newData = this.new_data;
-            this.$ajax.post("/api/students", this.$qs.stringify({major_id: newData.major_id, student_no: newData.student_id, name: newData.name, password: newData.password, grade: newData.grade, category: newData.category.id})).then(res => {
+            this.$ajax.post("/api/students", this.$qs.stringify({major_id: newData.major_id, student_no: newData.student_id, name: newData.name, password: newData.password, grade: newData.grade, category: newData.category.id, mobile: newData.mobile, qq: newData.qq, class: newData.class})).then(res => {
                 if(res.data.code == 0) {
                     document.getElementsByClassName("popo")[1].style.display = "none";
                     this.$message({
@@ -103,7 +108,7 @@ export default {
                 } else {
                     this.$message({
                         showClose: true,
-                        message: "添加失败...",
+                        message: res.data.msg,
                         type: 'error'
                     });
                 }
@@ -133,7 +138,7 @@ export default {
             this.total_page = res.data.data.total;
             if(res.data.code == 0) {
                 let newData = res.data.data.data.map(item => {
-                    return {id: item.id, major: item.major_name, name: item.name, grade: item.grade, no: item.student_no, category: item.category == 2 ? "本科" : "高职"}
+                    return {id: item.id, major: item.major_name, name: item.name, grade: item.grade, no: item.student_no, category: item.category == 2 ? "本科" : "高职", mobile: item.mobile, qq: item.qq, class: item.class}
                 });
                 this.tableData = newData;
             }
@@ -143,7 +148,14 @@ export default {
             let files = document.getElementById('students_file').files;
             var form = new FormData();
             form.append('excel_file', files[0]);
+            const loading = this.$loading({
+                lock: true,
+                text: '上传中，请稍候...',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
             this.$ajax.post("/api/students/import", form).then(res => {
+                loading.close();
                 if(res.data.code == 0) {
                     this.$message({
                         showClose: true,
@@ -159,12 +171,15 @@ export default {
                     });
                 }
             }).catch(() => {
+                loading.close();
                 this.$message({
                         showClose: true,
                         message: "上传失败...",
                         type: 'error'
                     });
-            })
+            });
+            // 清空，否则下次选择同一文件时不会触发change事件
+            document.getElementById('students_file').value = "";
         }
     },
     created() {
@@ -209,5 +224,6 @@ export default {
         h2{text-align: center;border-bottom: 1px solid #fff;margin-bottom: 20px;}
         .new_p{margin: 20px auto;width: 50%;}
         .new_span{font-size: 18px;margin-right: 20px;}
+        .fileBtn{position: absolute; right: 8px;width: 255px;}
     }
 </style>

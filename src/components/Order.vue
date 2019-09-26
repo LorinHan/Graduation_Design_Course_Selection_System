@@ -34,10 +34,10 @@ export default {
             this.$ajax.post("/api/s/intentions", send_data, {headers: {'Content-Type': 'application/json'}}).then(res => {
                 if(res.data.code == 0) {
                     alert("提交成功！");
-                    this.$router.push("/intention");
+                    this.$router.push("/tip?intention=1");
                 } else {
                     alert("提交失败，请稍后重试。");
-                    this.$router.push("/intention");
+                    // this.$router.push("/intention");
                 }
             })
         },

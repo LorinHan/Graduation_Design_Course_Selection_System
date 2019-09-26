@@ -1,7 +1,7 @@
 <template>
   <div>
       <h3 style="text-align:center;">配对结果：{{teacher_name}}</h3>
-      <router-link style="margin-top: 20px; display: block; text-align:center;" to="/intention"><mt-button size="small">查看已提交的志愿</mt-button></router-link>
+      <router-link style="margin-top: 40px; display: block; text-align:center;" to="/tip"><mt-button style="background-color: #ff3333;color:#fff;" size="small">关闭</mt-button></router-link>
   </div>
 </template>
 

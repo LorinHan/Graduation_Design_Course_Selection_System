@@ -13,7 +13,7 @@ module.exports = {
     proxyTable: {
       "/api":{
         // http://zehuo.huoran.net
-        target:"http://192.168.43.21:8000",//访问的服务器地址
+        target:"http://47.100.45.15",//访问的服务器地址
         changeOrigin:true,//true为开启代理
         //secure: true, // 如果是https接口，需要配置这个参数
         pathRewrite:{

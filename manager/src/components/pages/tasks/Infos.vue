@@ -2,24 +2,39 @@
   <div>
       <el-tabs type="border-card">
         <el-tab-pane label="基础信息">
+            <el-dialog
+                title="轮次开启时间配置"
+                :visible.sync="centerDialogVisible"
+                width="30%"
+                center>
+                教师选择时长：<input type="number" style="width:50px;padding: 2px 0 2px 5px;" v-model="tea_time"> 分钟<br><br>
+                学生选择时长：<input type="number" style="width:50px;padding: 2px 0 2px 5px;" v-model="stu_time"> 分钟
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="centerDialogVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="start">确 定</el-button>
+                </span>
+            </el-dialog>
             <div class="base">
                 <!-- id: {{id}} -->
                 <p><span>专业：</span>{{this.data.major_name}}</p>
                 <p><span>学历层次：</span>{{this.data.category == 2 ? "本科" : this.data.category == 1 ? "高职" : "error"}}</p>
                 <p><span>年级：</span>{{this.data.grade}}</p>
-                <p><span>选题状态：</span>{{this.data.status == 0 ? '未发布': this.data.status == 1 ? '已发布': '已结束'}}</p>
+                <p><span>选题状态：</span>{{this.data.status == 0 ? '未开启': this.data.status == 1 ? '已开启': '已结束'}}</p>
                 <p><span>轮次：</span>第{{this.data.round}}轮</p>
                 <p><span>轮次状态：</span>{{this.data.round_status == 0 ? '未开启': this.data.round_status == 1 ? '学生选择中': '教师选择中'}}</p>
                 <p><span>导师可选学生默认数量：</span>{{this.data.student_number}}</p>
                 <p><span>学生可选志愿数量：</span>{{this.data.intention_number}}</p>
                 <p><span>描述：</span>{{this.data.description == "''" ? "" : this.data.description}}</p>
+                <p><span>当前轮次开始时间：</span>{{this.data.round_time}}</p>
+                <p><span>学生选择截止时间：</span>{{this.data.student_time}}</p>
+                <p><span>教师选择截止时间：</span>{{this.data.teacher_time}}</p>
                 <div style="margin-top: 40px;text-align: center;">
                     <!-- <el-button type="success" @click="start">启动第 {{data.round + 1}} 轮</el-button> -->
-                    <el-button v-if="data.round_status == 0" type="success" @click="start">开启本轮学生选题</el-button>
-                    <el-button v-else-if="data.round_status == 1" type="success" @click="start">开启本轮教师选题</el-button>
-                    <el-button v-else-if="data.round_status == 2" type="success" @click="start">停止当前轮次</el-button>
-                    <el-button type="danger" @click="finish">结束当前选题</el-button>
-                    <el-button type="primary">发布结果</el-button>
+                    <el-button v-if="data.round_status == 0" type="success" @click="centerDialogVisible = true" :disabled="this.data.round_status == 0 ? false : true">开启本轮学生选题</el-button>
+                    <el-button v-else-if="data.round_status == 1" type="success" @click="centerDialogVisible = true" :disabled="this.data.round_status == 0 ? false : true">开启本轮教师选题</el-button>
+                    <el-button v-else-if="data.round_status == 2" type="success" @click="start" :disabled="this.data.round_status == 0 ? false : true">停止当前轮次</el-button>
+                    <el-button type="danger" @click="finish" :disabled="this.data.round_status == 0 ? false : true">结束当前选题</el-button>
+                    <el-button type="primary" @click="published" :disabled="this.data.round_status == 0 ? false : true">发布结果</el-button>
                 </div>
             </div>
         </el-tab-pane>
@@ -247,34 +262,42 @@ export default {
             distribution_data: {student_no: "", student: "", teacher_no: "", teacher: "", id: 0},
             all_majors: [],
             select_student: "",
-            select_teacher: ""
+            select_teacher: "",
+            stu_time: 15,
+            tea_time: 15,
+            centerDialogVisible: false
         }
     },
     methods: {
         start() {
             // 发送轮次启停的请求：
-            this.$ajax.put("/api/tasks/" + this.id).then(res => {
-                if(res.data.code == 0) {
-                    this.$message({
-                        message: '启动成功！',
-                        type: 'success'
-                    });
-                    // 刷新数据
-                    this.$ajax.get("/api/tasks/" + this.id).then(data => {
-                        this.data = data.data.data;
-                    });
-                    // 获取分配在该任务的教师
-                    this.getChoosedTeachers();
-                    // 获取可分配教师
-                    this.forEachNoStudentData();
-                    // 获取志愿详情列表
-                    this.getIntentions();
-                    // 获取已配对的志愿列表
-                    this.getPdIntentions(-1);
-                    // 获取还有余量的老师
-                    this.get_no_student_data();
-                }
-            });
+            if(!/^\d+$/.test(this.stu_time) || !/^\d+$/.test(this.tea_time)) return this.$message({ type: 'error', message: '请输入纯数字' });
+                        this.tea_time = parseInt(this.tea_time);
+                        this.stu_time = parseInt(this.stu_time);
+                        // 发送请求
+                        this.$ajax.put("/api/tasks/" + this.id, this.$qs.stringify({"student_time": this.stu_time, "teacher_time": this.tea_time})).then(res => {
+                            if(res.data.code == 0) {
+                                    this.$message({
+                                        message: '操作成功！',
+                                        type: 'success'
+                                    });
+                                    this.centerDialogVisible = false;
+                                    // 刷新数据
+                                    this.$ajax.get("/api/tasks/" + this.id).then(data => {
+                                        this.data = data.data.data;
+                                    });
+                                    // 获取分配在该任务的教师
+                                    this.getChoosedTeachers();
+                                    // 获取可分配教师
+                                    this.forEachNoStudentData();
+                                    // 获取志愿详情列表
+                                    this.getIntentions();
+                                    // 获取已配对的志愿列表
+                                    this.getPdIntentions(-1);
+                                    // 获取还有余量的老师
+                                    this.get_no_student_data();
+                                }
+                            });
         },
         next_round() {
             this.$message({
@@ -289,12 +312,43 @@ export default {
         filterResult(value, row) {
             return row.result === value;
         },
+        // 结束当前选题
         finish() {
-            this.$message({
-                message: '成功结束该选题！',
-                type: 'success'
-            });
-            this.$router.push("/home/tasks")
+            this.$messageBox.confirm("确定要结束该选题吗？", "提示", {
+                confirmButtonText: '结束',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$ajax.post("/api/tasks/" + this.id + "/stop").then(res => {
+                    if(res.data.code == 0) {
+                        this.$message({
+                            message: '成功结束该选题！',
+                            type: 'success'
+                        });
+                        // 刷新数据
+                        this.$ajax.get("/api/tasks/" + this.id).then(data => {
+                            this.data = data.data.data;
+                        });
+                        // 获取分配在该任务的教师
+                        this.getChoosedTeachers();
+                        // 获取可分配教师
+                        this.forEachNoStudentData();
+                        // 获取志愿详情列表
+                        this.getIntentions();
+                        // 获取已配对的志愿列表
+                        this.getPdIntentions(-1);
+                        // 获取还有余量的老师
+                        this.get_no_student_data();
+                    } else {
+                        this.$message({
+                            message: '操作失败',
+                            type: 'error'
+                        });
+                    }
+                });
+            }).catch(() => { console.log("取消"); })
+            
+            
         },
         formatter(row, column) {
             if(row.result == 1) {return "确认成功"}
@@ -366,7 +420,7 @@ export default {
                     this.get_no_student_data();
                     this.$message({
                         showClose: true,
-                        message: '恭喜你，这是一条成功消息',
+                        message: '操作成功！',
                         type: 'success'
                     });
                 }
@@ -459,6 +513,16 @@ export default {
             this.$ajax.get("/api/tasks/" + this.id + "/teachers?free=1").then(res => {
                 this.no_student_data = res.data.data;
             })
+        },
+        published() {
+            this.$ajax.post("/api/tasks/" + this.id + "/publish").then(res => {
+                if(res.data.code == 0) {
+                    this.$message({
+                        message: '发布成功！',
+                        type: 'success'
+                    });
+                }
+            })
         }
     },
     created() {
@@ -478,7 +542,7 @@ export default {
                 })
             }
         })
-                // 请求数据
+        // 请求数据
         this.$ajax.get("/api/tasks/" + this.id).then(data => {
             this.data = data.data.data;
         });
@@ -523,7 +587,7 @@ export default {
             height: 40px;
             line-height: 40px;
             border: 1px solid #ccc;
-            span{display: inline-block; width: 200px; height: 100%; padding-left: 5%; font-weight: 400; margin-right: 15%; border-right: 1px solid #ccc;}
+            span{display: inline-block; width: 200px; height: 100%; padding-left: 5%; font-weight: 400; margin-right: 7%; border-right: 1px solid #ccc;}
         }
     }
     .pd_infos{

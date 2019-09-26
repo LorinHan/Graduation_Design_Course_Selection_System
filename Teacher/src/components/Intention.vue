@@ -1,6 +1,6 @@
 <template>
   <div class="intention">
-      <h3 style="text-align:center;">当前轮次：{{round}}</h3>
+      <!-- <h3 style="text-align:center;">当前轮次：{{round}}</h3> -->
       <h3>志愿详情</h3>
       <p class="item">
         <span><strong>学号</strong></span>
@@ -12,7 +12,8 @@
         <span>{{item.student_name}}</span>
         <span>{{item.result == 1 ? "接受" : item.result == 2 ? "拒绝": item.result}}</span>
       </p>
-      <router-link class="routerBtn" :to="'/result?task_id=' + this.$route.query.task_id"><mt-button type="primary" size="small">查看结果</mt-button></router-link>
+      <router-link style="margin-top: 40px; display: block; text-align:center;" :to="'/teacher?task_id='+this.$route.query.task_id"><mt-button style="background-color: #ff3333;color:#fff;" size="small">关闭</mt-button></router-link>
+      <!-- <router-link class="routerBtn" :to="'/result?task_id=' + this.$route.query.task_id"><mt-button type="primary" size="small">查看结果</mt-button></router-link> -->
     </div>
 </template>
 

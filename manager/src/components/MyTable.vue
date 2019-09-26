@@ -86,9 +86,24 @@
       label="年级">
     </el-table-column>
     <el-table-column
+      v-if="type == 'students'"
+      prop="class"
+      label="班级">
+    </el-table-column>
+    <el-table-column
+      v-if="type == 'students'"
+      prop="mobile"
+      label="手机号">
+    </el-table-column>
+    <el-table-column
+      v-if="type == 'students'"
+      prop="qq"
+      label="QQ">
+    </el-table-column>
+    <el-table-column
       v-if="type == 'teachers'"
       prop="title"
-      label="职称">
+      label="专业技术职务">
     </el-table-column>
     <el-table-column
       v-if="type == 'teachers'"

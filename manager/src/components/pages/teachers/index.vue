@@ -22,12 +22,12 @@
                 </el-dropdown-menu>
                 </el-dropdown>
             </p>
-            <p class="new_p"><span class="new_span">职称：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.title" placeholder="职称"></el-input></p>
+            <p class="new_p"><span class="new_span">专业技术职务：</span><el-input style="display:inline-block;width: 60%;" v-model="new_data.title" placeholder="多个职称请使用 / 分隔"></el-input></p>
             <p class="new_p"><span class="new_span">研究方向：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.research" placeholder="研究方向"></el-input></p>
             <p class="new_p"><span class="new_span">密码：</span><el-input style="display:inline-block;width: 70%;" v-model="new_data.password" type="password" placeholder="密码"></el-input></p>
             <el-button @click="send_new_data" type="success" style="display: block;margin: 10px auto;">确 定</el-button>
         </el-popover>
-      <!-- <el-button type="warning" size="small" class="newBtn" icon="el-icon-printer">上传</el-button> -->
+      <el-button type="warning" size="small" class="newBtn fileBtn" icon="el-icon-printer" @click="fileClick">批量导入</el-button>
       <input class="newBtn" type="file" id="teacher_file" @change="postTeacherFile">
       <el-button type="primary" size="small" class="newBtn" v-popover:popover_teacher icon="el-icon-circle-plus-outline">新增</el-button>
       <MyTable :data="tableData" :handleEdit="handleEdit" :handleDetail="handleDetail" :majors="majors" :filterMajor="filterMajor" :type="'teachers'" :total_page="total_page" @getTeacherData="getTeacherData" :limit="limit"></MyTable>
@@ -49,6 +49,8 @@ export default {
         }
     },
     methods: {
+        // 触发file按钮
+        fileClick() { document.getElementById('teacher_file').click(); },
         handleEdit(row) {
             console.log(row);
         },
@@ -73,7 +75,7 @@ export default {
                 } else {
                     this.$message({
                         showClose: true,
-                        message: "添加失败...",
+                        message: res.data.msg,
                         type: 'error'
                     });
                 }
@@ -99,7 +101,14 @@ export default {
             let files = document.getElementById('teacher_file').files;
             var form = new FormData();
             form.append('excel_file', files[0]);
+            const loading = this.$loading({
+                lock: true,
+                text: '上传中，请稍候...',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
             this.$ajax.post("/api/teachers/import", form).then(res => {
+                loading.close();
                 if(res.data.code == 0) {
                     this.$message({
                         showClose: true,
@@ -115,12 +124,15 @@ export default {
                     });
                 }
             }).catch(() => {
+                loading.close();
                 this.$message({
                         showClose: true,
                         message: "上传失败...",
                         type: 'error'
                     });
-            })
+            });
+            // 清空，否则下次选择同一文件时不会触发change事件
+            document.getElementById('teacher_file').value = "";
         }
     },
     created() {
@@ -145,5 +157,6 @@ export default {
         h2{text-align: center;border-bottom: 1px solid #fff;margin-bottom: 20px;}
         .new_p{margin: 20px auto;width: 50%;}
         .new_span{font-size: 18px;margin-right: 20px;}
+        .fileBtn{position: absolute; right: 8px;width: 255px;}
     }
 </style>

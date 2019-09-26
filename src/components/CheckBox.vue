@@ -16,8 +16,9 @@
                 popup-transition="popup-fade"
                 :closeOnClickModal="true">
                 <h2>{{the_teacher_info.name}}</h2>
-                <p class="infoP">职称：{{the_teacher_info.title}}</p>
-                <p class="infoP">简介：{{the_teacher_info.desc}}</p>
+                <p class="infoP">教工号：{{the_teacher_info.teacher_no}}</p>
+                <p class="infoP">专业技术职务：{{the_teacher_info.title}}</p>
+                <p class="infoP">研究方向：{{the_teacher_info.desc}}</p>
                 <mt-button class="choose" size="small" @click="choose" type="danger">选择Ta</mt-button>
             </mt-popup>
     </div>
@@ -32,7 +33,7 @@ export default {
             options: [],
             popupVisible: false,
             choosedName: "",
-            the_teacher_info: {name: "汪婷婷", title: "副教授、经济师、管理会计师", desc: "福建省高校人文社科研究基地-财务与审计信息化研究中心主任，福建省财务与金融实验教学示范中心主任。主持教育部产学协同育人项目、福建省重大教育教学改革项目、福建省创新创业专业、福建省创新创业资源共享课程等多个教科研项目建设。"}
+            the_teacher_info: {name: "", title: "", desc: "", teacher_no: ""}
         }
     },
     created() {
@@ -41,19 +42,27 @@ export default {
     },
     methods: {
         open(teacher) {
+            console.log(teacher)
+            this.the_teacher_info.name = teacher.name;
+            this.the_teacher_info.title = teacher.title;
+            this.the_teacher_info.desc = teacher.research;
+            this.the_teacher_info.teacher_no = teacher.teacher_no;
             this.choosedName = teacher;
             this.popupVisible = true;
         },
         close() { this.popupVisible = false;},
         choose() {
             if(this.value.length == this.$props.max) {
-                this.$toast({message: "最多只能选择 " + this.max + " 位导师哦", position: "middle", duration: 2500, iconClass: "mint-toast-icon mintui mintui-field-warning"})
+                this.popupVisible = false;
+                return this.$toast({message: "最多只能选择 " + this.max + " 位导师哦", position: "middle", duration: 2500, iconClass: "mint-toast-icon mintui mintui-field-warning"})
             }
+            let exit = 0;
             this.value.forEach(item => {
                 if(item.no == this.choosedName.teacher_no) {
-                    return this.$toast({message: "已选择!", position: "middle", duration: 2000});
+                    return exit = 1;
                 }
             });
+            if(exit == 1) {this.popupVisible = false;return this.$toast({message: "已选择!", position: "middle", duration: 2000});}
             this.value.push({name: this.choosedName.name, no: this.choosedName.teacher_no});
             // else if(this.value.includes(this.choosedName)) {
             //     this.$toast({message: "已选择!", position: "middle", duration: 2000})

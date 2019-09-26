@@ -73,7 +73,7 @@ export default {
                 tea_to_stu: 5,
                 intention_num: 5,
                 all_teachers: true,
-                category: 1,
+                category: 2,
                 description: ""
             },
             limit: 20,
@@ -90,8 +90,8 @@ export default {
             else if(row.round_status == 2) {return "教师选择中"}
         },
         formatter(row, column) {
-            if(row.status == 1) {return "已发布"}
-            else if(row.status == 0) {return "未发布"}
+            if(row.status == 1) {return "已开启"}
+            else if(row.status == 0) {return "未开启"}
             else if(row.status == 2) {return "已结束"}
         },
         filterStatus(value, row) {
@@ -145,7 +145,7 @@ export default {
                 } else {
                     this.$message({
                         showClose: true,
-                        message: '创建失败',
+                        message: res.data.msg,
                         type: 'error'
                     });
                 }

@@ -7,9 +7,12 @@
         <p class="school">商管院</p>
         <!-- <p class="text">个人简介：</p>
         <textarea class="desc" v-model="desc" :disabled="disabled"></textarea> -->
-        <p style="margin-top: 20px;">专业技术职务：<input type="text" style="padding-left: 5px;height: 30px;" :disabled="disabled" v-model="me.title"></p>
-        <p style="font-size:12px;margin-top:5px;color:#ccc;" v-if="!disabled">多个专业技术职务请使用 / 隔开，如“教授/工程师”。</p>
-        <p style="margin-top: 20px;">研究方向：<textarea class="desc" :disabled="disabled" v-model="me.research"></textarea></p>
+        <p style="margin-top: 40px; margin-left: 25%;">学号：{{me.student_no}}</p>
+        <!-- <p style="margin-top: 20px; margin-left: 25%;">专业：<input type="text" :disabled="disabled"></p> -->
+        <p style="margin-top: 20px; margin-left: 25%;">班级：{{me.class}}</p>
+        <p style="margin-top: 20px; margin-left: 25%;">手机：<input type="text" style="padding-left:5px;height: 30px;" v-model="me.mobile" :disabled="disabled"></p>
+        <p style="margin-top: 20px; margin-left: 25%;">QQ ：<input type="text" style="padding-left:5px;height: 30px;" v-model="me.qq" :disabled="disabled"></p>
+        
         <mt-button v-if="this.disabled == false" type="danger" size="small" @click="cancle">取消</mt-button>
         <mt-button :type="btnType" size="small" @click="edit">{{text}}</mt-button>
     </div>
@@ -19,7 +22,7 @@ export default {
     data() {
         return {
             disabled: true,
-            text: "修改简介",
+            text: "修改信息",
             btnType: "primary",
             me: {}
         }
@@ -27,16 +30,16 @@ export default {
     methods: {
         edit() {
             this.disabled = !this.disabled;
-            if(this.text == "修改简介") {
+            if(this.text == "修改信息") {
                 this.text = "提交修改";
                 this.btnType = "primary";
             } else {
                 this.$messageBox.confirm('确认修改吗?').then(action => {
                      if(action == 'confirm'){
-                         this.$ajax.put("/api/t/teachers", this.$qs.stringify({title: this.me.title, research: this.me.research})).then(res => {
+                         this.$ajax.put("/api/s/students", this.$qs.stringify({title: this.me.mobile, research: this.me.qq})).then(res => {
                              if(res.data.code == 0) {
                                 this.$toast("修改成功", 2000);
-                                this.text = "修改简介";
+                                this.text = "修改信息";
                                 this.btnType = "primary";
                                 // 刷新数据
                                 this.$ajax.get("/api/t/me").then(res => {
@@ -48,7 +51,7 @@ export default {
                          });
                     }
                 }).catch(err => {
-                    this.text = "修改简介";
+                    this.text = "修改信息";
                     this.btnType = "primary";
                 });
                 
@@ -60,7 +63,7 @@ export default {
         }
     },
     created() {
-        this.$ajax.get("/api/t/me").then(res => {
+        this.$ajax.get("/api/s/me").then(res => {
             if(res.data.code == 0) {
                 this.me = res.data.data[0];
             }

@@ -31,7 +31,7 @@ export default {
                         } else if(res_data.status == 0) {
                             this.$router.push("/tip?status=" + res_data.status)
                         } else if(res_data.status == 2) {
-                            this.$router.push("/result");
+                            this.$router.push("/tip/result");
                         } else if(res_data.status == 1 && res_data.round_status != 1) {
                             this.$router.push("/tip?round_status=" + res_data.round_status + "&round=" + res_data.round)
                         } else if("teachers" in res_data) {
@@ -40,13 +40,13 @@ export default {
                             this.$router.push("/student");
                         } else if("result" in res_data && res_data.result == true) {
                             localStorage.setItem("result", JSON.stringify(res_data.result.teacher_name));
-                            this.$router.push("/result");
+                            this.$router.push("/tip/result");
                         } else if("intention" in res_data && res_data.intention == true) {
-                            this.$router.push("/intention");
+                            this.$router.push("/tip/intention");
                         }
                     });
-                } else if(res.data.code == 400) {
-                    this.$toast({message: "登陆失败...", position: "middle", duration: 2000, iconClass: "mint-toast-icon mintui mintui-field-error"})
+                } else {
+                    this.$toast({message: res.data.msg, position: "middle", duration: 2000, iconClass: "mint-toast-icon mintui mintui-field-error"})
                 }
                 // } else if(data == "pwd err") {return this.$message("用户名或密码错误", 1000)} else if(data == "Server Error") {this.$message("服务端错误", 1000);}
             })

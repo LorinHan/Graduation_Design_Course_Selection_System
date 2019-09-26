@@ -8,6 +8,7 @@ const Order = r => require.ensure([], () => r(require('@/components/Order.vue'))
 const Tip = r => require.ensure([], () => r(require('@/components/Tip.vue')), 'chunkname4')
 const Intention = r => require.ensure([], () => r(require('@/components/Intention_list.vue')), 'chunkname5')
 const Result = r => require.ensure([], () => r(require('@/components/Result.vue')), 'chunkname6')
+const Me = r => require.ensure([], () => r(require('@/components/Me.vue')), 'chunkname7')
 
 Vue.use(Router)
 
@@ -31,17 +32,12 @@ export default new Router({
     {
       path: '/tip',
       name: "Tip",
-      component: Tip
+      component: Tip,
+      children: [
+        {path: 'intention', name: "Intention", component: Intention},
+        {path: 'result', name: "Result", component: Result}
+      ]
     },
-    {
-      path: '/intention',
-      name: "Intention",
-      component: Intention
-    },
-    {
-      path: '/result',
-      name: "Result",
-      component: Result
-    }
+    {path: "/me", name: "Me", component: Me}
   ]
 })

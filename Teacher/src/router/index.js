@@ -28,7 +28,19 @@ export default new Router({
     {
       path: '/teacher',
       name: 'Teacher',
-      component: Teacher
+      component: Teacher,
+      children: [
+        {
+          path: 'result',
+          name: 'Result',
+          component: Result
+        },
+        {
+          path: 'intention',
+          name: 'Intention',
+          component: Intention
+        }
+      ]
     },
     {
       path: '/history',
@@ -44,16 +56,6 @@ export default new Router({
       path: '/history_task',
       name: 'History_task',
       component: History_task
-    },
-    {
-      path: '/result',
-      name: 'Result',
-      component: Result
-    },
-    {
-      path: '/intention',
-      name: 'Intention',
-      component: Intention
     }
   ]
 })
