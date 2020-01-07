@@ -129,7 +129,7 @@
 </script>
 <style lang="less" scoped>
     #home{
-        width:100%;height:100%;
+        width:100%;height: 100%;
         .top{
             position: relative;
             width:100%;
@@ -144,15 +144,16 @@
         }
         .left{
             width:11%;
-            height:100%;
+            height: 100%;
             float: left;
             background-color: #f4f4f4;
             .inner{padding-left: 35%!important;}
         }
         .center{
             width:89%;
-            height:100%;
             float: left;
+            height: 100%;
+            overflow: auto;
             .pages{
                 width:100%;
                 height: 52px;

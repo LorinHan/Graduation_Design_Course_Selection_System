@@ -6,6 +6,7 @@ import http from './router/http.js';
 import router from './router'
 import store from './store/store.js';
 import Qs from 'qs';
+import 'babel-polyfill';
 import {Button, Input, Col, Menu, MenuItem, Submenu, MenuItemGroup, Table, TableColumn, Popover, Tag, Tabs, TabPane, Dropdown, DropdownMenu, DropdownItem, InputNumber, Radio, Message, Switch, Collapse, CollapseItem, Pagination, MessageBox, Dialog, Loading} from "element-ui";
 
 Vue.prototype.$ajax = http

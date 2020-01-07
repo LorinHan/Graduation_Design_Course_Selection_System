@@ -87,7 +87,8 @@
             <el-table
                 :data="choosed_teachers"
                 tooltip-effect="dark"
-                style="width: 100%">
+                align="center"
+                style="width: 100%;">
                 <el-table-column
                 prop="major"
                 label="专业">
@@ -104,6 +105,14 @@
                 <el-table-column
                 prop="title"
                 label="职称">
+                </el-table-column>
+                <el-table-column
+                prop="actual_number"
+                label="已配对学生数">
+                </el-table-column>
+                <el-table-column
+                prop="assigned_number"
+                label="可选学生总数">
                 </el-table-column>
                 <el-table-column
                 label="操作">
@@ -175,8 +184,6 @@
                 </div>
             <el-popover
                 ref="popover_distribution"
-                width="800"
-                placement="start"
                 class="popo"
                 popper-class="pd_popo pd_info_popo"
                 trigger="click">
@@ -257,7 +264,7 @@ export default {
             choosed_teachers: [],
             // 所有教师按专业分类
             teachers_data: [],
-                activeNames: ['电子商务'],
+            activeNames: [],
             // 为每一个学生指定教师的数据集
             distribution_data: {student_no: "", student: "", teacher_no: "", teacher: "", id: 0},
             all_majors: [],
@@ -391,6 +398,7 @@ export default {
                         message: "分配成功！",
                         type: 'success'
                     });
+                    this.forEachNoStudentData();
                 }
             })
         },
@@ -432,6 +440,7 @@ export default {
             this.$ajax.delete("/api/tasks/" + this.id + "/teachers/" + tea_id).then(res => {
                 if(res.data.code == 0) {
                     this.getChoosedTeachers();
+                    this.forEachNoStudentData();
                 }
             })
             // let taskId = this.$route.query.id;
@@ -442,7 +451,7 @@ export default {
              this.$ajax.get("/api/tasks/" + this.id + "/teachers").then(res => {
                  if(res.data.code == 0) {
                         let newData = res.data.data.map(item => {
-                            return {id: item.id, major: item.major_name, name: item.name, no: item.teacher_no, title: item.title}
+                            return {id: item.id, major: item.major_name, name: item.name, no: item.teacher_no, title: item.title, assigned_number: item.assigned_number, actual_number: item.actual_number}
                         });
                         this.choosed_teachers = newData;
                     }
